@@ -14,3 +14,8 @@ run from root.
 
 If you are curious, look into SensorProtocol.html file in order to to
 know some details of the protocol used by this sensor.
+
+GP updates
+
+Updated 23 Jun 2020 t bluez 5.54
+

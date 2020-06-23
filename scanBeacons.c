@@ -92,6 +92,7 @@ static int print_advertising_devices(int dd, uint8_t filter_type)
 	struct sigaction sa;
 	socklen_t olen;
 	int len = 0;
+	int origlen;
 	int i;
 
 	olen = sizeof(of);
@@ -136,6 +137,7 @@ static int print_advertising_devices(int dd, uint8_t filter_type)
 	*/
 	evt_le_meta_event *meta;
 	le_advertising_info *info;
+	hci_event_hdr *hdr;
 	fd_set set;
 	struct timeval timeout;
 	int rv = 1;
@@ -160,7 +162,10 @@ static int print_advertising_devices(int dd, uint8_t filter_type)
 		} else if (rv == 0) { /* a timeout occured */
 			goto done;
 		}
-		len = read(dd, buf, sizeof(buf));
+		len = origlen = read(dd, buf, sizeof(buf));
+
+		hdr = (void *) buf;
+
 
 		ptr = buf + (1 + HCI_EVENT_HDR_SIZE);
 		len -= (1 + HCI_EVENT_HDR_SIZE);
@@ -174,10 +179,15 @@ static int print_advertising_devices(int dd, uint8_t filter_type)
 		info = (le_advertising_info *) (meta->data + 1);
 
 		if (debug) {
-			ba2str(&info->bdaddr,addr);
-			printf("%s - ",addr);
+			ba2str(&info->bdaddr, addr);
+			printf("%s - ", addr);
+			printf("HDR [%02x - %02x] - ", hdr->plen, hdr->evt);
+			printf("origlen=%02x - len=%02x - ilen=%02x - et=%02x - at=%02x -- ", origlen, len, info->length, info->evt_type, info->bdaddr_type);
 			for (i=0; i<info->length; i++)
 				printf("%02X ", (unsigned int)(info->data[i]& 0xFF));
+			printf("\n");
+			for (i=0; i<origlen; i++) 
+				printf("%02X ", (unsigned int)(buf[i]& 0xFF));
 			printf("\n");
 		}
 
@@ -245,7 +255,7 @@ int main(int argc, char *argv[])
 	uint8_t filter_policy = 0x01; /* Whitelist (0x00 = normal scan) */
 	uint16_t interval = htobs(0x0010);
 	uint16_t window = htobs(0x0010);
-	uint8_t filter_dup = 0x01; /* Ffilter duplicates (0x00 d don't filter duplicates) */
+	uint8_t filter_dup = 0x00; /* Ffilter duplicates (0x00 d don't filter duplicates) */
 	int i, dev_id = -1;
 	char bad_chars[] = "!@%^*~|";
 	char invalid_found = 0;
@@ -336,14 +346,12 @@ int main(int argc, char *argv[])
 		err = hci_le_add_white_list(dd, &devsBtAddr[i], own_type, 1000);
 		if (err < 0) {
 			err = -errno;
-			fprintf(stderr, "Can't add to white list: %s(%d)\n",
-								strerror(-err), -err);
+			fprintf(stderr, "Can't add to white list: %s(%d)\n", strerror(-err), -err);
 			exit(1);
 		}
 	}
 
-	err = hci_le_set_scan_parameters(dd, scan_type, interval, window,
-						own_type, filter_policy, 10000);
+	err = hci_le_set_scan_parameters(dd, scan_type, interval, window, own_type, filter_policy, 10000);
 	if (err < 0) {
 		perror("Set scan parameters failed");
 		exit(1);
