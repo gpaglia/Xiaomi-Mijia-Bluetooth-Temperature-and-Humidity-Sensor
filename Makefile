@@ -2,6 +2,8 @@ CC=gcc
 CFLAGS=-I.
 DEPS = bluetooth.h  hci.h  hci_lib.h  oui.h
 OBJ = bluetooth.o  hci.o  scanMijia.o  oui.o 
+OBJB = bluetooth.o  hci.o  scanBeacons.o  oui.o 
+
 
 %.o: %.c $(DEPS)
 	$(CC) -c -o $@ $< $(CFLAGS)
@@ -9,5 +11,10 @@ OBJ = bluetooth.o  hci.o  scanMijia.o  oui.o
 scanMijia: $(OBJ)
 	gcc -O2 -o $@ $^ $(CFLAGS)
 
+scanBeacons: $(OBJB)
+	gcc -O2 -o $@ $^ $(CFLAGS)
+
 clean:
-	rm -f *.o *~ core scanMijia 
+	rm -f *.o *~ core scanMijia scanBeacons
+
+all: scanMijia scanBeacons
