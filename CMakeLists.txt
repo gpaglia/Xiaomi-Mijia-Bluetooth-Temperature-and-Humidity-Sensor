@@ -9,13 +9,46 @@ endif()
 set(CMAKE_C_STANDARD 11)
 set(CMAKE_C_STANDARD_REQUIRED ON)
 
-project(ScanBeacons VERSION 1.0
-                  DESCRIPTION "Scan BLE beacons in passive mode"
+project(liblescan VERSION 1.0
+                  DESCRIPTION "Java native library to Scan BLE beacons in passive mode"
                   LANGUAGES C)
 
-set(BLUEZ_FILES bluez/bluetooth.c bluez/hci.c bluez/oui.c)
+# Appends the cmake/modules path to MAKE_MODULE_PATH variable.
+set (CMAKE_MODULE_PATH ${CMAKE_SOURCE_DIR}/cmake/modules ${CMAKE_MODULE_PATH})
 
-add_executable(scanMijia src/scanMijia.c ${BLUEZ_FILES})
-add_executable(scanBeacons src/scanBeacons.c ${BLUEZ_FILES})
-target_include_directories(scanMijia PUBLIC bluez)
-target_include_directories(scanBeacons PUBLIC bluez)
+# Make a version file containing the current version from git.
+include (GetGitRevisionDescription)
+git_describe (VERSION "--tags")
+
+if ("x_${VERSION}" STREQUAL "x_GIT-NOTFOUND" OR "x_${VERSION}" STREQUAL "x_HEAD-HASH-NOTFOUND" OR "x_${VERSION}" STREQUAL "x_-128-NOTFOUND")
+  message (WARNING " - Install git to compile a production liblescan!")
+  set (VERSION "0.1.0-SNAPSHOT")
+endif ()
+
+message (INFO " - liblescan Version ${VERSION}")
+
+#parse the version information into pieces.
+string (REGEX REPLACE "^([0-9]+)\\..*" "\\1" VERSION_MAJOR "${VERSION}")
+string (REGEX REPLACE "^[0-9]+\\.([0-9]+).*" "\\1" VERSION_MINOR "${VERSION}")
+string (REGEX REPLACE "^[0-9]+\\.[0-9]+\\.([0-9]+).*" "\\1" VERSION_PATCH "${VERSION}")
+string (REGEX REPLACE "^[0-9]+\\.[0-9]+\\.[0-9]+\\-([0-9]+).*" "\\1" VERSION_COMMIT "${VERSION}")
+string (REGEX REPLACE "^[0-9]+\\.[0-9]+\\.[0-9]+-[0-9]+\\-(.*)" "\\1" VERSION_SHA1 "${VERSION}")
+set (VERSION_SHORT "${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_PATCH}")
+set (VERSION_API "${VERSION_MAJOR}.${VERSION_MINOR}")
+string(TIMESTAMP BUILD_TSTAMP "%Y-%m-%d %H:%M:%S")
+
+if ("${VERSION_COMMIT}" EQUAL ${VERSION})
+  set (VERSION_COMMIT "")
+endif()
+
+configure_file (${CMAKE_SOURCE_DIR}/cmake/modules/version.c.in
+                ${CMAKE_BINARY_DIR}/misc/version.c)
+# ---
+
+set(MAIN_INCLUDE_DIR ${CMAKE_SOURCE_DIR}/include)
+set(BLUEZ_DIR "${CMAKE_SOURCE_DIR}/bluez")
+
+file(GLOB BLUEZ_FILES CONFIGURE_DEPENDS "${BLUEZ_DIR}/*.c")
+
+add_subdirectory(scanMijia)
+add_subdirectory(scanBeacons)
