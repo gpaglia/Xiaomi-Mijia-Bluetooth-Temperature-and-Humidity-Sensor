@@ -52,3 +52,6 @@ file(GLOB BLUEZ_FILES CONFIGURE_DEPENDS "${BLUEZ_DIR}/*.c")
 
 add_subdirectory(scanMijia)
 add_subdirectory(scanBeacons)
+add_subdirectory(java)
+
+

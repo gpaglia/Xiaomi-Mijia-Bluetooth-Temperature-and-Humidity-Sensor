@@ -141,6 +141,7 @@ static int print_advertising_devices(int dd, uint8_t filter_type)
 	fd_set set;
 	struct timeval timeout;
 	int rv = 1;
+	int nreports;
 	char addr[18];
 	while (rv > 0) {
 		len = 0;
@@ -164,38 +165,69 @@ static int print_advertising_devices(int dd, uint8_t filter_type)
 		}
 		len = origlen = read(dd, buf, sizeof(buf));
 
-		hdr = (void *) buf;
+		if (debug) {
+			for (i=0; i < origlen; i++) {
+				printf("%02X ", (unsigned int)(buf[i]& 0xFF));
+			}
+			printf("\n");
+		}
 
 
+		if (buf[0] & 0xff != HCI_EVENT_PKT) {
+			printf("Unexpected packet type %02x\n", buf[0]);
+			goto done;
+		}
+
+		hdr = (void *) buf + 1;
+		if (hdr->evt != EVT_LE_META_EVENT) {
+			printf("Unexpected event type %02x\n", hdr->evt);
+			goto done;
+		}
+		if (len != hdr->plen + HCI_EVENT_HDR_SIZE + 1) {
+			printf("Wrong length: buffer len is %02x  <> payload len %02x + hdr size %02x + 1\n", len, hdr->plen, HCI_EVENT_HDR_SIZE);
+			goto done;
+		}
+
+/*
 		ptr = buf + (1 + HCI_EVENT_HDR_SIZE);
 		len -= (1 + HCI_EVENT_HDR_SIZE);
 
 		meta = (void *) ptr;
+*/
+		meta = (void *) (((unsigned char *) hdr) + HCI_EVENT_HDR_SIZE);
 
-		if (meta->subevent != 0x02)
+		if (meta->subevent != EVT_LE_ADVERTISING_REPORT) {
+			printf("Ignoring event type %02x <> EVT_LE_ADVERTISING_REPORT %02x\n", meta->subevent, EVT_LE_ADVERTISING_REPORT);
 			goto done;
-
-		/* Ignoring multiple reports */
-		info = (le_advertising_info *) (meta->data + 1);
-
-		if (debug) {
-			ba2str(&info->bdaddr, addr);
-			printf("%s - ", addr);
-			printf("HDR [%02x - %02x] - ", hdr->plen, hdr->evt);
-			printf("origlen=%02x - len=%02x - ilen=%02x - et=%02x - at=%02x -- ", origlen, len, info->length, info->evt_type, info->bdaddr_type);
-			for (i=0; i<info->length; i++)
-				printf("%02X ", (unsigned int)(info->data[i]& 0xFF));
-			printf("\n");
-			for (i=0; i<origlen; i++) 
-				printf("%02X ", (unsigned int)(buf[i]& 0xFF));
-			printf("\n");
 		}
 
-		for (i=0; i<nDevs; i++)
-			if (memcmp(info->bdaddr.b, devsBtAddr[i].b, sizeof(bdaddr_t)) == 0) {
-				update_data(i, info->data, info->length);
-				break; 
+		nreports = (int) meta->data[0];
+		printf("nreports is %02x\n", nreports);
+
+
+		ptr = meta->data + 1;
+
+		for (int i = 0; i < nreports; i++) {
+			info = (le_advertising_info *) ptr;
+			if (debug) {
+				ba2str(&info->bdaddr, addr);
+				printf(
+					"Report %d: et: %02x, at; %02x, len: %02x, addr: %s\n", 
+					i, info->evt_type, info->bdaddr_type, info->length, addr);
 			}
+
+			for (i=0; i<nDevs; i++) {
+				if (memcmp(info->bdaddr.b, devsBtAddr[i].b, sizeof(bdaddr_t)) == 0) {
+					update_data(i, info->data, info->length);
+					break; 
+				}
+			}
+
+			ptr = ptr + info->length;
+
+		}
+
+
 
 		/* check if enough samples or timeout */
 		if ((maxTime > 0) && (time(NULL) - startTime) > maxTime)
