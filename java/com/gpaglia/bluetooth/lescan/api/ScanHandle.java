@@ -1,6 +1,5 @@
-package java.com.gpaglia.bluetooth.lescan.api;
+package com.gpaglia.bluetooth.lescan.api;
 
-import java.util.List;
 import java.util.Set;
 
 public interface ScanHandle extends AutoCloseable {
@@ -16,17 +15,17 @@ public interface ScanHandle extends AutoCloseable {
    * Resets the whitelist and then installs the new set of addresses in the whitelist
    * 
    * @param addresses the addresses to be installed in the whitelist filter
-   * @throws ScannerException in case of any problems
+   * @throws HCIException in case of any problems
    */
-  void setWhitelist(final Set<DeviceAddress> addresses) throws ScannerException;
+  void setWhitelist(final Set<DeviceAddress> addresses) throws HCIException;
 
   /**
    * Resets the whitelist and then installs the new set of addresses in the whitelist
    * 
    * @param addresses the addresses to be installed in the whitelist filter
-   * @throws ScannerException in case of any problems
+   * @throws HCIException in case of any problems
    */
-  void setWhiteList(final DeviceAddress... addreses)  throws ScannerException;
+  void setWhiteList(final DeviceAddress... addreses)  throws HCIException;
 
   /**
    * Starts the scan operation.
@@ -39,7 +38,7 @@ public interface ScanHandle extends AutoCloseable {
    * @param window The scan window as a multiple of 0.625ms; must not be greater than interval
    * @param timeout
    * @param callback
-   * @throws ScannerException
+   * @throws HCIException
    */
   void startScan(
     final ScanType scanType, 
@@ -49,9 +48,9 @@ public interface ScanHandle extends AutoCloseable {
     final int interval, 
     final int window, 
     final int timeout,
-    final ScanInfoCallback callback) throws ScannerException;
+    final ScanInfoCallback callback) throws HCIException;
 
-    void stopScan() throws ScannerException;
+    void stopScan() throws HCIException;
 
     default void close() {
       if (isScanActive()) {

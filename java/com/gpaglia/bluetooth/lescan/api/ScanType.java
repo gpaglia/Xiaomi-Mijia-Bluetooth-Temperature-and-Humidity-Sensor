@@ -1,4 +1,4 @@
-package java.com.gpaglia.bluetooth.lescan.api;
+package com.gpaglia.bluetooth.lescan.api;
 
 public enum ScanType {
     PASSIVE(0x00),
