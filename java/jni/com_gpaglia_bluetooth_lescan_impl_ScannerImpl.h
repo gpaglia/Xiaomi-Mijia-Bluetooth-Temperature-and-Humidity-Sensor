@@ -9,18 +9,18 @@ extern "C" {
 #endif
 /*
  * Class:     com_gpaglia_bluetooth_lescan_impl_ScannerImpl
- * Method:    openDeviceNoFromAddress
+ * Method:    openDeviceFromAddress
  * Signature: (Ljava/lang/String;)I
  */
-JNIEXPORT jint JNICALL Java_com_gpaglia_bluetooth_lescan_impl_ScannerImpl_openDeviceNoFromAddress
+JNIEXPORT jint JNICALL Java_com_gpaglia_bluetooth_lescan_impl_ScannerImpl_openDeviceFromAddress
   (JNIEnv *, jobject, jstring);
 
 /*
  * Class:     com_gpaglia_bluetooth_lescan_impl_ScannerImpl
- * Method:    openDeviceNoFromName
+ * Method:    openDeviceFromName
  * Signature: (Ljava/lang/String;)I
  */
-JNIEXPORT jint JNICALL Java_com_gpaglia_bluetooth_lescan_impl_ScannerImpl_openDeviceNoFromName
+JNIEXPORT jint JNICALL Java_com_gpaglia_bluetooth_lescan_impl_ScannerImpl_openDeviceFromName
   (JNIEnv *, jobject, jstring);
 
 /*

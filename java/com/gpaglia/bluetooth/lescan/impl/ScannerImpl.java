@@ -9,25 +9,26 @@ public class ScannerImpl implements Scanner {
 
     @Override
     public ScanHandle openHciDevice(Integer hciDeviceNo) throws HCIException {
-        // TODO Auto-generated method stub
-        return null;
+        final int fd = openDeviceFromDevNo(hciDeviceNo.intValue());
+
+        return buildScanHandle(fd);
     }
 
     @Override
     public ScanHandle openDevice(DeviceAddress adapterAddress) throws HCIException {
-        // TODO Auto-generated method stub
-        return null;
+        final int fd = openDeviceFromAddress(adapterAddress.getAddress());
+        return buildScanHandle(fd);
     }
 
     @Override
     public ScanHandle openDevice(String deviceName) throws HCIException {
-        // TODO Auto-generated method stub
-        return null;
+        final int fd = openDeviceFromName(deviceName);
+        return buildScanHandle(fd);
     }
     
-    private native int openDeviceNoFromAddress(String addr);
+    private native int openDeviceFromAddress(String addr);
 
-    private native int openDeviceNoFromName(String name);
+    private native int openDeviceFromName(String name);
 
     private native int openDeviceFromDevNo(int devNo);
 
