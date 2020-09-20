@@ -4,12 +4,12 @@ public enum ScanType {
     PASSIVE(0x00),
     ACTIVE(0x01);
 
-    private final int scanType;
+    private final int type;
 
-    private ScanType(int type) {
-        this.scanType = type;
+    private ScanType(final int type) {
+        this.type = type;
     }
 
-    public int getScanTypeCode() { return scanType; }
+    public int getTypeCode() { return type; }
     
 }

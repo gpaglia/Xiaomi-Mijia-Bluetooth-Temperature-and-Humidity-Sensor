@@ -1,3 +1,5 @@
+#define _GNU_SOURCE
+
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <fcntl.h>
@@ -19,13 +21,24 @@
 #include "hci.h"
 #include "hci_lib.h"
 
+static int numSamples = 1;
 static int maxTime = -1;
 static char debug = 0;
 
 static volatile int signal_received = 0;
+static char *filename = NULL;
 
+static int* ntSamples = 0;
+static int* nhSamples = 0;
 static int nDevs;
 static bdaddr_t *devsBtAddr;
+
+static unsigned long* timeTemperature;
+static unsigned long* timeHumidity;
+static unsigned long* timeBattery;
+static int* temperature;
+static int* humidity;
+static int* battery;
 
 static void sigint_handler(int sig)
 {
@@ -38,7 +51,42 @@ static int getVal16(uint8_t* data) {
 	return t;
 }
 
+static void update_data(int devIndex, uint8_t* data, uint8_t length) {
+	if (length!=0x16 && length!=0x17 && length!=0x19)
+		return;
+	if (data[4]!=0x16 || data[5]!=0x95 || data[6]!=0xFE)
+		return;
 
+        time_t currentTime = time(NULL);
+
+	switch (data[18]) {
+		case 0x0D:
+			temperature[devIndex] += getVal16(&data[21]);
+			ntSamples[devIndex]++;
+			humidity[devIndex] += getVal16(&data[23]);
+			nhSamples[devIndex]++;
+			char buff[20];
+			timeTemperature[devIndex] = currentTime;
+			timeHumidity[devIndex] = currentTime;
+			break;
+		case 0x0A:
+			battery[devIndex] = data[21]&0xff;
+			timeBattery[devIndex] = currentTime;
+			break;
+		case 0x04:
+			temperature[devIndex] += getVal16(&data[21]);
+			ntSamples[devIndex]++;
+			timeTemperature[devIndex] = currentTime;
+			break;
+		case 0x06:
+			humidity[devIndex] += getVal16(&data[21]);
+			nhSamples[devIndex]++;
+			timeHumidity[devIndex] = currentTime;
+			break;
+		default:
+			return;
+	}
+}
 
 static int print_advertising_devices(int dd, uint8_t filter_type)
 {
@@ -205,7 +253,6 @@ done:
 	return 0;
 }
 
-
 static void usage(void)
 {
 	int i;
@@ -282,7 +329,7 @@ int main(int argc, char *argv[])
 					exit(1);
 				}
 				filename = malloc(strlen(optarg)+1);
-				strcpy(filename,optarg);
+				strcpy(filename, optarg);
 				break;
 			case 'd':
 				debug = 1;
@@ -384,19 +431,83 @@ int main(int argc, char *argv[])
 	return 0;
 }
 
-// new functions -- assume 
+// support functions for java native methods
+// convention on return values: 
+// 		if OK, return >=0 value 
+//		else if errno > 0, return -errno
+//		else return another significant errno made negative (like -EINVAL)
 
-static int scan_active = 0;
 
-int lescan_open(int dev_id) {
+// device name to device number. name can be the dev name or the address 'XX.XX.XX.XX.XX.XX'
+int lescan_ntoid(const char * name) {
+	errno = 0;
+	int dev_id = hci_devid(name);
+	if (dev_id < 0) {
+		if (errno > 0) {
+			return -errno;
+		} else {
+			return -EINVAL;
+		}
+	} else {
+		return dev_id;
+	}
+}
+
+// get the device number (id) for the first available adapter
+int lescan_default_dev_id() {
+	errno = 0;
+	int dev_id = hci_get_route(NULL);
+
+	if (dev_id < 0) {
+		if (errno > 0) {
+			return -errno;
+		} else {
+			return -EIO;
+		}
+	} else {
+		return dev_id;
+	}
+}
+
+int lescan_open_id(int dev_id) {
+	if (dev_id < 0) {
+		errno = ENODEV;
+		return -errno;
+	}
+
+	errno = 0;
     int dd = hci_open_dev(dev_id);
+	if (dd < 0) {
+		if (errno > 0) {
+			return -errno;
+		} else {
+			return -EIO;
+		}
+	} else {
+		return dd;
+	}
+}
 
-	return dd;
+int lescan_addr_to_dev_id(const char * addr) {
+	int dev_id = hci_devid(addr);
+	if (dev_id < 0) {
+		if (errno > 0) {
+		return -errno;
+		} else {
+			return -EINVAL;
+		}
+	} else {
+		return dev_id;
+	}
 }
 
 void lescan_close(int dd) {
     hci_close_dev(dd);
 }
 
+
+void outputValues() {
+	// do nothing at the moment
+}
 
 
