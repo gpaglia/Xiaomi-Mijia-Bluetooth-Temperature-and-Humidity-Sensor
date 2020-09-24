@@ -124,4 +124,4 @@ add_custom_command (TARGET lescan
 
 # install (FILES ${CMAKE_CURRENT_BINARY_DIR}/lescan.jar DESTINATION ${CMAKE_INSTALL_LIBDIR}/../lib/java)
 
-# add_subdirectory (jni)
+add_subdirectory (com/gpaglia/bluetooth/exp/jni)

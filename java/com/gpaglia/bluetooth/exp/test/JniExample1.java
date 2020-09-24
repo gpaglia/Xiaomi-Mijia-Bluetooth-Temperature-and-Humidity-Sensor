@@ -6,6 +6,7 @@ public class JniExample1 {
     private JniExample1() {}
 
     public static void main(String[] args) {
+        System.loadLibrary("jniexp");
         final JniExample1 example = new JniExample1();
         final Another another = new Another(314);
         

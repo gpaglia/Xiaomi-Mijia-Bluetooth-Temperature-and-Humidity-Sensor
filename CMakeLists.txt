@@ -13,6 +13,9 @@ project(liblescan VERSION 1.0
                   DESCRIPTION "Java native library to Scan BLE beacons in passive mode"
                   LANGUAGES C)
 
+# Set CMAKE_LIB_INSTALL_DIR if not defined
+include(GNUInstallDirs)
+
 # Appends the cmake/modules path to MAKE_MODULE_PATH variable.
 set (CMAKE_MODULE_PATH ${CMAKE_SOURCE_DIR}/cmake/modules ${CMAKE_MODULE_PATH})
 
@@ -46,6 +49,12 @@ configure_file (${CMAKE_SOURCE_DIR}/cmake/modules/version.c.in
                 ${CMAKE_BINARY_DIR}/misc/version.c)
 # ---
 
+# this is the library version, independant of git revision
+set (lescan_VERSION_MAJOR ${VERSION_MAJOR})
+set (lescan_VERSION_MINOR ${VERSION_MINOR})
+set (lescan_VERSION_PATCH ${VERSION_PATCH})
+set (lescan_VERSION_STRING "${lescan_VERSION_MAJOR}.${lescan_VERSION_MINOR}.${lescan_VERSION_PATCH}")
+
 set(MAIN_INCLUDE_DIR ${CMAKE_SOURCE_DIR}/include)
 set(BLUEZ_DIR "${CMAKE_SOURCE_DIR}/bluez")
 
@@ -55,6 +64,6 @@ add_subdirectory(scanMijia)
 add_subdirectory(scanBeacons)
 add_subdirectory(lescan)
 add_subdirectory(java)
-add_subdirectory(jniexp)
+# add_subdirectory(jniexp)
 
 

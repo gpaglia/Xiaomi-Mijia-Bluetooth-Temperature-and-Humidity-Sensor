@@ -6,31 +6,33 @@ if (JNI_FOUND)
 endif (JNI_FOUND)
 
 set (EXP_LIB_INCLUDE_DIRS
-    ${PROJECT_SOURCE_DIR}/api
-    ${PROJECT_SOURCE_DIR}/api/tinyb
-    ${PROJECT_SOURCE_DIR}/include
+    ${PROJECT_SOURCE_DIR}/jniexp
 )
 
 include_directories(
     ${JNI_INCLUDE_DIRS}
-    ${tinyb_LIB_INCLUDE_DIRS}
-    ${JNI_HEADER_PATH}
+    ${EXP_LIB_INCLUDE_DIRS}
+    ${EXP_JNI_HEADER_PATH}
 )
 
-file(GLOB JNI_SOURCES "*.cxx")
+file(GLOB JNI_SOURCES "*.c")
 
 set (CMAKE_SHARED_LINKER_FLAGS "-Wl,--as-needed")
 
-add_library (javatinyb SHARED ${JNI_SOURCES})
-target_link_libraries(javatinyb ${JNI_LIBRARIES} tinyb)
+add_library (jniexp SHARED ${JNI_SOURCES})
+target_link_libraries(jniexp ${JNI_LIBRARIES} )
+
+message (STATUS "lescan_VERSION_MAJOR=${lescan_VERSION_MAJOR}")
+message (STATUS "lescan_VERSION_STRING=${lescan_VERSION_STRING}")
+message (STATUS "CMAKE_INSTALL_LIBDIR=${CMAKE_INSTALL_LIBDIR}")
 
 set_target_properties(
-    javatinyb
+    jniexp
     PROPERTIES
-    SOVERSION ${tinyb_VERSION_MAJOR}
-    VERSION ${tinyb_VERSION_STRING}
+    SOVERSION ${lescan_VERSION_MAJOR}
+    VERSION ${lescan_VERSION_STRING}
     CXX_STANDARD 11
     COMPILE_FLAGS "-Wall -Wextra"
 )
 
-install(TARGETS javatinyb LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR})
+#install(TARGETS jniexp LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR})
