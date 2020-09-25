@@ -32,7 +32,7 @@ set_target_properties(
     SOVERSION ${lescan_VERSION_MAJOR}
     VERSION ${lescan_VERSION_STRING}
     CXX_STANDARD 11
-    COMPILE_FLAGS "-Wall -Wextra"
+    COMPILE_FLAGS "-Wall -Wextra -fPIC"
 )
 
 #install(TARGETS jniexp LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR})

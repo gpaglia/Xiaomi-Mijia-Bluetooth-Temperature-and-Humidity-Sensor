@@ -6,7 +6,7 @@ import java.util.TimerTask;
 @SuppressWarnings("java:S106")
 public class ThreadExample {
     private final int count; // how many loops
-    private final int sleep; // in ms
+    private final int sleep; // in secs
     private Thread myThread;
 
     public ThreadExample(final int count, final int sleep) {
@@ -14,25 +14,20 @@ public class ThreadExample {
         this.sleep = sleep;
     }
 
-    private class Callback {
-        public void reportCallback(final long startts, final int data) {
-            System.out.printf("callback: called after %dms data %d ...%n", System.currentTimeMillis() - startts, data);
-        }
-    }
 
     private class Runner implements Runnable {
 
         private final int nloops;
-        private final int delay;
-        private final Callback callback;
+        private final int delay; // in sec
         private final TimerTask interrupter;
         private final Timer t = new Timer();
         private long ts;
+        private final CallbackEx cb;
 
         private Runner(final int nloops, final int delay) {
             this.nloops = nloops;
             this.delay = delay;
-            this.callback = new Callback();
+            this.cb = new CallbackEx(System.currentTimeMillis(), 23);
             this.interrupter = new TimerTask() {
                 @Override
                 public void run() {
@@ -47,17 +42,13 @@ public class ThreadExample {
 
         @Override
         public void run() {
-            int iter = 0;
             ts = System.currentTimeMillis();
             System.out.printf("Runner thread starting at ts %d %n", ts);
             try {
 
-                t.schedule(interrupter, nloops * (delay + 100L));
+                t.schedule(interrupter, (nloops - 2) * (delay * 1000) + 100L);
 
-                while (!Thread.interrupted()) {
-                    // do loop action
-                    doAction(iter++, delay, callback);
-                }
+                doAction(nloops, delay, cb);
 
             } catch (InterruptedException iex) {
                 System.out.printf("Loop interrupted after %dms !!%n", delta());
@@ -70,17 +61,17 @@ public class ThreadExample {
         }
 
         @SuppressWarnings("java:S2142")
-        private void doAction(final int cnt, final int delay, final Callback cb) throws InterruptedException {
-            System.out.printf("doAction: after %dms cnt %d about to sleep for %d ms ...%n", delta(), cnt, delay);
+        private void doAction(final int cnt, final int st, final CallbackEx cb) throws InterruptedException {
+            System.out.printf("doAction: cnt=%d st=%d ...%n", cnt, st);
             try {
-                Thread.sleep(delay);
+
+                final int result = loop(cb, cnt, st);
+                System.out.printf("Loop finished rerurning %d %n", result);
             } catch (InterruptedException ex) {
                 System.out.printf("doAction: after %dms Interrupted!! %n", delta());
                 throw ex;
             }
-            System.out.printf("doAction: after %dms finished sleeping, calling callback ... %n", delta());
-
-            cb.reportCallback(ts, cnt);
+            System.out.printf("doAction: after %dms finished loop ... %n", delta());
 
         }
 
@@ -91,11 +82,14 @@ public class ThreadExample {
         private long delta() {
             return System.currentTimeMillis() - ts;
         }
+
+        private native int loop(final CallbackEx cb, final int cnt, final int st) throws InterruptedException;
     }
 
     public static void main(String[] args) {
+        System.loadLibrary("jniexp");
         final int nloops = 5;
-        final int delay = 1000;
+        final int delay = 1;
         final ThreadExample example = new ThreadExample(nloops, delay);
         example.startRunner();
     }
@@ -106,4 +100,19 @@ public class ThreadExample {
         myThread.start();
     }
 
+}
+@SuppressWarnings("java:S106")
+class CallbackEx {
+    private final long startts;
+    private final int v;
+
+
+    CallbackEx(final long startts, final int v) {
+        this.startts = startts;
+        this.v = v;
+    }
+
+    public void callback(final int extv) {
+        System.out.printf("callback: called after %dms cbv %d localv %d...%n", System.currentTimeMillis() - startts, extv, v);
+    }
 }

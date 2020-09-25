@@ -6,9 +6,9 @@
     "configurations": [
         {
             "type": "java",
-            "name": "Debug (Launch) - JniEample1",
+            "name": "Debug (Launch) - JniEamples",
             "request": "launch",
-            "mainClass": "com.gpaglia.bluetooth.exp.test.JniExample1",
+            "mainClass": "${file}",
             "vmArgs": ["-Djava.library.path=${workspaceFolder}/build/java/com/gpaglia/bluetooth/exp/jni"]
         },
         {
