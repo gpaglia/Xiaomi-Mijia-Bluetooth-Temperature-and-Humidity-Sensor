@@ -1,3 +1,5 @@
+#define _GNU_SOURCE
+
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <fcntl.h>
@@ -92,6 +94,7 @@ static int print_advertising_devices(int dd, uint8_t filter_type)
 	struct sigaction sa;
 	socklen_t olen;
 	int len = 0;
+	int origlen;
 	int i;
 
 	olen = sizeof(of);
@@ -136,9 +139,11 @@ static int print_advertising_devices(int dd, uint8_t filter_type)
 	*/
 	evt_le_meta_event *meta;
 	le_advertising_info *info;
+	hci_event_hdr *hdr;
 	fd_set set;
 	struct timeval timeout;
 	int rv = 1;
+	int nreports;
 	char addr[18];
 	while (rv > 0) {
 		len = 0;
@@ -160,32 +165,71 @@ static int print_advertising_devices(int dd, uint8_t filter_type)
 		} else if (rv == 0) { /* a timeout occured */
 			goto done;
 		}
-		len = read(dd, buf, sizeof(buf));
+		len = origlen = read(dd, buf, sizeof(buf));
 
+		if (debug) {
+			for (i=0; i < origlen; i++) {
+				printf("%02X ", (unsigned int)(buf[i]& 0xFF));
+			}
+			printf("\n");
+		}
+
+
+		if (buf[0] & 0xff != HCI_EVENT_PKT) {
+			printf("Unexpected packet type %02x\n", buf[0]);
+			goto done;
+		}
+
+		hdr = (void *) buf + 1;
+		if (hdr->evt != EVT_LE_META_EVENT) {
+			printf("Unexpected event type %02x\n", hdr->evt);
+			goto done;
+		}
+		if (len != hdr->plen + HCI_EVENT_HDR_SIZE + 1) {
+			printf("Wrong length: buffer len is %02x  <> payload len %02x + hdr size %02x + 1\n", len, hdr->plen, HCI_EVENT_HDR_SIZE);
+			goto done;
+		}
+
+/*
 		ptr = buf + (1 + HCI_EVENT_HDR_SIZE);
 		len -= (1 + HCI_EVENT_HDR_SIZE);
 
 		meta = (void *) ptr;
+*/
+		meta = (void *) (((unsigned char *) hdr) + HCI_EVENT_HDR_SIZE);
 
-		if (meta->subevent != 0x02)
+		if (meta->subevent != EVT_LE_ADVERTISING_REPORT) {
+			printf("Ignoring event type %02x <> EVT_LE_ADVERTISING_REPORT %02x\n", meta->subevent, EVT_LE_ADVERTISING_REPORT);
 			goto done;
-
-		/* Ignoring multiple reports */
-		info = (le_advertising_info *) (meta->data + 1);
-
-		if (debug) {
-			ba2str(&info->bdaddr,addr);
-			printf("%s - ",addr);
-			for (i=0; i<info->length; i++)
-				printf("%02X ", (unsigned int)(info->data[i]& 0xFF));
-			printf("\n");
 		}
 
-		for (i=0; i<nDevs; i++)
-			if (memcmp(info->bdaddr.b, devsBtAddr[i].b, sizeof(bdaddr_t)) == 0) {
-				update_data(i, info->data, info->length);
-				break; 
+		nreports = (int) meta->data[0];
+		printf("nreports is %02x\n", nreports);
+
+
+		ptr = meta->data + 1;
+
+		for (int i = 0; i < nreports; i++) {
+			info = (le_advertising_info *) ptr;
+			if (debug) {
+				ba2str(&info->bdaddr, addr);
+				printf(
+					"Report %d: et: %02x, at; %02x, len: %02x, addr: %s\n", 
+					i, info->evt_type, info->bdaddr_type, info->length, addr);
 			}
+
+			for (i=0; i<nDevs; i++) {
+				if (memcmp(info->bdaddr.b, devsBtAddr[i].b, sizeof(bdaddr_t)) == 0) {
+					update_data(i, info->data, info->length);
+					break; 
+				}
+			}
+
+			ptr = ptr + info->length;
+
+		}
+
+
 
 		/* check if enough samples or timeout */
 		if ((maxTime > 0) && (time(NULL) - startTime) > maxTime)
@@ -234,6 +278,8 @@ static void usage(void)
 		
 }
 
+void outputValues();
+
 int main(int argc, char *argv[])
 {
 	int err, opt, dd;
@@ -243,7 +289,7 @@ int main(int argc, char *argv[])
 	uint8_t filter_policy = 0x01; /* Whitelist (0x00 = normal scan) */
 	uint16_t interval = htobs(0x0010);
 	uint16_t window = htobs(0x0010);
-	uint8_t filter_dup = 0x01; /* Ffilter duplicates (0x00 d don't filter duplicates) */
+	uint8_t filter_dup = 0x00; /* Ffilter duplicates (0x00 d don't filter duplicates) */
 	int i, dev_id = -1;
 	char bad_chars[] = "!@%^*~|";
 	char invalid_found = 0;
@@ -334,14 +380,12 @@ int main(int argc, char *argv[])
 		err = hci_le_add_white_list(dd, &devsBtAddr[i], own_type, 1000);
 		if (err < 0) {
 			err = -errno;
-			fprintf(stderr, "Can't add to white list: %s(%d)\n",
-								strerror(-err), -err);
+			fprintf(stderr, "Can't add to white list: %s(%d)\n", strerror(-err), -err);
 			exit(1);
 		}
 	}
 
-	err = hci_le_set_scan_parameters(dd, scan_type, interval, window,
-						own_type, filter_policy, 10000);
+	err = hci_le_set_scan_parameters(dd, scan_type, interval, window, own_type, filter_policy, 10000);
 	if (err < 0) {
 		perror("Set scan parameters failed");
 		exit(1);
@@ -387,7 +431,7 @@ int main(int argc, char *argv[])
 	return 0;
 }
 
-int outputValues() {
+void outputValues() {
 	int i;
 	char addr[18];
 	int fd;

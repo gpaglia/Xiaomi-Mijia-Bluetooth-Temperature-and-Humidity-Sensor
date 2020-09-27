@@ -32,6 +32,7 @@
 #include <ctype.h>
 #include <stdarg.h>
 #include <stdlib.h>
+#include <stdbool.h>
 #include <string.h>
 #include <sys/socket.h>
 
@@ -77,6 +78,13 @@ bdaddr_t *strtoba(const char *str)
 int ba2str(const bdaddr_t *ba, char *str)
 {
 	return sprintf(str, "%2.2X:%2.2X:%2.2X:%2.2X:%2.2X:%2.2X",
+		ba->b[5], ba->b[4], ba->b[3], ba->b[2], ba->b[1], ba->b[0]);
+}
+
+/* Match kernel's lowercase printing of mac address (%pMR) */
+int ba2strlc(const bdaddr_t *ba, char *str)
+{
+	return sprintf(str, "%2.2x:%2.2x:%2.2x:%2.2x:%2.2x:%2.2x",
 		ba->b[5], ba->b[4], ba->b[3], ba->b[2], ba->b[1], ba->b[0]);
 }
 
@@ -2337,6 +2345,8 @@ const char *bt_compidtostr(int compid)
 		return "Senix Corporation";
 	case 1037:
 		return "NorthStar Battery Company, LLC";
+	case 1521:
+		return "The Linux Foundation";
 	case 65535:
 		return "internal use";
 	default:
