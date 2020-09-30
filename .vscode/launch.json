@@ -9,7 +9,7 @@
             "name": "Debug (Launch) - JniEamples",
             "request": "launch",
             "mainClass": "${file}",
-            "vmArgs": ["-Djava.library.path=${workspaceFolder}/build/java/com/gpaglia/bluetooth/exp/jni"]
+            "vmArgs": ["-Djava.library.path=${workspaceFolder}/build/java/jni/exp"]
         },
         {
             "type": "java",

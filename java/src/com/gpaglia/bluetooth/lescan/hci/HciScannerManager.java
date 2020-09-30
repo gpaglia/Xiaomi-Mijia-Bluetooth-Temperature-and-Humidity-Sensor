@@ -5,8 +5,8 @@ import java.util.Map;
 
 import com.gpaglia.bluetooth.lescan.api.DeviceAddress;
 import com.gpaglia.bluetooth.lescan.api.Scanner;
-import com.gpaglia.bluetooth.lescan.api.ScannerManager;
 import com.gpaglia.bluetooth.lescan.api.ScannerException;
+import com.gpaglia.bluetooth.lescan.api.ScannerManager;
 
 /**
  * ScannerImpl is a singleton that will enforce that a given deviceNo representing a

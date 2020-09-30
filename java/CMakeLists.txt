@@ -28,7 +28,7 @@ set(LESCAN_JAVA_API_PREFIX "${LESCAN_JAVA_PREFIX}/api")
 set(LESCAN_JAVA_HCI_PREFIX "${LESCAN_JAVA_PREFIX}/hci")
 set(LESCAN_JAVA_HCI_RES_PREFIX "${LESCAN_JAVA_PREFIX}/hci-resources")
 set(LESCAN_JNI_HEADER_PATH "${CMAKE_CURRENT_BINARY_DIR}${CMAKE_FILES_DIRECTORY}/lescan.dir/jni")
-set(LESCAN_JNI_PREFIX "${LESCAN_JAVA_PREFIX}/jni")
+set(LESCAN_JNI_PREFIX "jni/lescan")
 
 #
 # exp and related artifacts
@@ -37,21 +37,21 @@ set(EXP_JAVA_PREFIX "com/gpaglia/bluetooth/exp")
 set(EXP_JAVA_TEST_PREFIX "${EXP_JAVA_PREFIX}/test")
 set(EXP_JAVA_TEST_RES_PREFIX "${EXP_JAVA_PREFIX}/test-resources")
 set(EXP_JNI_HEADER_PATH "${CMAKE_CURRENT_BINARY_DIR}${CMAKE_FILES_DIRECTORY}/exp.dir/jni")
-set(EXP_JNI_PREFIX "${EXP_JAVA_PREFIX}/jni")
+set(EXP_JNI_PREFIX "jni/exp")
 
 #
 # lescan source files and resources
 #
-file(GLOB_RECURSE LESCAN_JAVA_API_SOURCES CONFIGURE_DEPENDS "${LESCAN_JAVA_API_PREFIX}/*.java")
-file(GLOB_RECURSE LESCAN_JAVA_HCI_SOURCES CONFIGURE_DEPENDS "${LESCAN_JAVA_HCI_PREFIX}/*.java")
+file(GLOB_RECURSE LESCAN_JAVA_API_SOURCES CONFIGURE_DEPENDS "src/${LESCAN_JAVA_API_PREFIX}/*.java")
+file(GLOB_RECURSE LESCAN_JAVA_HCI_SOURCES CONFIGURE_DEPENDS "src/${LESCAN_JAVA_HCI_PREFIX}/*.java")
 #file(GLOB_RECURSE JAVA_HCI_RESOURCES CONFIGURE_DEPENDS "${LESCAN_JAVA_HCI_RES_PREFIX}/*")
-set(LESCAN_JAVA_HCI_RESOURCES "${LESCAN_JAVA_HCI_RES_PREFIX}/META-INF/services/com.gpaglia.bluetooth.lescan.api.ScannerManager")
+set(LESCAN_JAVA_HCI_RESOURCES "src/${LESCAN_JAVA_HCI_RES_PREFIX}/META-INF/services/com.gpaglia.bluetooth.lescan.api.ScannerManager")
 
 #
 # exp source files and resources
 #
-file(GLOB_RECURSE EXP_JAVA_TEST_SOURCES CONFIGURE_DEPENDS "${EXP_JAVA_TEST_PREFIX}/*.java")
-file(GLOB_RECURSE EXP_TEST_RESOURCES CONFIGURE_DEPENDS "${EXP_JAVA_TEST_RES_PREFIX}/*")
+file(GLOB_RECURSE EXP_JAVA_TEST_SOURCES CONFIGURE_DEPENDS "src/${EXP_JAVA_TEST_PREFIX}/*.java")
+file(GLOB_RECURSE EXP_TEST_RESOURCES CONFIGURE_DEPENDS "src/${EXP_JAVA_TEST_RES_PREFIX}/*")
 
 #
 # lescan content
@@ -80,19 +80,24 @@ add_jar(lescan-api ${LESCAN_JAVA_API_SOURCES}
                   VERSION ${VERSION}
                   OUTPUT_NAME lescan-api
 )
-
+# Save the lescan-api jar location
+# get_target_property(LESCAN_API_JAR lescan-api JAR_FILE)
+# message (STATUS "LESCAN_API_JAR=${LESCAN_API_JAR}")
 # lescan-hci
-set(CMAKE_JAVA_INCLUDE_PATH ${LESCAN_JAVA_API_PREFIX})
+
 set(CMAKE_JAR_CLASSES_PREFIX ${LESCAN_JAVA_HCI_PREFIX})
+set(CMAKE_JNI_TARGET TRUE)
 add_jar(lescan-hci 
                   SOURCES ${LESCAN_JAVA_HCI_SOURCES} ${LESCAN_JAVA_HCI_RESOURCES}
+                  INCLUDE_JARS lescan-api
                   VERSION ${VERSION}
-                  GENERATE_NATIVE_HEADERS lescan-jniheaders DESTINATION ${LESCAN_JNI_HEADER_PATH} # ${CMAKE_CURRENT_SOURCE_DIR}/jni
+                  GENERATE_NATIVE_HEADERS lescan-jniheaders DESTINATION ${LESCAN_JNI_HEADER_PATH} 
                   OUTPUT_NAME lescan-hci
 )
 
 # exp
 set(CMAKE_JAR_CLASSES_PREFIX ${EXP_JAVA_TEST_PREFIX})
+set(CMAKE_JNI_TARGET TRUE)
 add_jar(lescan-exp 
                   SOURCES ${EXP_JAVA_TEST_SOURCES} ${EXP_JAVA_TEST_RESOURCES}
                   VERSION ${VERSION}
@@ -101,7 +106,6 @@ add_jar(lescan-exp
 )
 
 # install (FILES ${CMAKE_CURRENT_BINARY_DIR}/lescan.jar DESTINATION ${CMAKE_INSTALL_LIBDIR}/../lib/java)
-
 
 #[[
 set(CMAKE_JNI_TARGET TRUE)
@@ -124,4 +128,4 @@ add_custom_command (TARGET lescan
 
 # install (FILES ${CMAKE_CURRENT_BINARY_DIR}/lescan.jar DESTINATION ${CMAKE_INSTALL_LIBDIR}/../lib/java)
 
-add_subdirectory (com/gpaglia/bluetooth/exp/jni)
+add_subdirectory (jni/exp)

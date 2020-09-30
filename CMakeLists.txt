@@ -1,10 +1,4 @@
-cmake_minimum_required(VERSION 3.1)
-
-if(${CMAKE_VERSION} VERSION_LESS 3.15)
-    cmake_policy(VERSION ${CMAKE_MAJOR_VERSION}.${CMAKE_MINOR_VERSION})
-else()
-    cmake_policy(VERSION 3.15)
-endif()
+cmake_minimum_required(VERSION 3.15)
 
 set(CMAKE_C_STANDARD 11)
 set(CMAKE_C_STANDARD_REQUIRED ON)
@@ -62,8 +56,9 @@ file(GLOB BLUEZ_FILES CONFIGURE_DEPENDS "${BLUEZ_DIR}/*.c")
 
 add_subdirectory(scanMijia)
 add_subdirectory(scanBeacons)
-add_subdirectory(lescan)
 add_subdirectory(java)
+add_subdirectory(lescan)
+
 # add_subdirectory(jniexp)
 
 
