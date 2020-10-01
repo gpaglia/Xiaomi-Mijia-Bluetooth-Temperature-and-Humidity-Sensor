@@ -1,3 +1,4 @@
 {
-    "C_Cpp.default.configurationProvider": "ms-vscode.cmake-tools"
+    "C_Cpp.default.configurationProvider": "ms-vscode.cmake-tools",
+    "java.checkstyle.configuration": "/home/pi/workspaces/checkstyle-java-default.xml"
 }
