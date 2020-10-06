@@ -1,5 +1,6 @@
-#define _GNU_SOURCE
+#define _POSIX_C_SOURCE 200112L
 
+#include <sys/select.h>
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <fcntl.h>

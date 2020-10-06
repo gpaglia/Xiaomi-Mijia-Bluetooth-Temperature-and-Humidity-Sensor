@@ -36,7 +36,12 @@ set_target_properties(
 
 target_compile_options(
     jniexp
-    PUBLIC -Wall -Wextra -fPIC
+    PUBLIC -Wall -Wextra -fPIC -pthread
+)
+
+target_link_options(
+    jniexp
+    PUBLIC -pthread
 )
 
 add_dependencies(jniexp lescan-exp)
