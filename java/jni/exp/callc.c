@@ -202,7 +202,7 @@ JNIEXPORT void JNICALL Java_com_gpaglia_bluetooth_exp_test_JniExample3_stopThrea
   }
 
 static void handler(int signum) {
-  printf("Got signal %d, self=%x\n", signum, (unsigned int) pthread_self());
+  printf("Thread %x got signal %d\n", (unsigned int) pthread_self(), signum);
 }
 
 static void * thread_start(void * arg) {
