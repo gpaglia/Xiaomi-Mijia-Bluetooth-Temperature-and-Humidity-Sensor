@@ -7,6 +7,10 @@ public class JniExample2 {
   
   private JniExample2() {}
 
+  /**
+  * Main method.
+  * @param args standard args
+  */
   public static void main(String[] args) {
     System.loadLibrary("jniexp");
     final JniExample2 example = new JniExample2();
@@ -22,6 +26,6 @@ public class JniExample2 {
     System.out.print("]\n");
 }
 
-private native ByteBuffer callWithByteBuffer(final int ival, final short shval);
+  private native ByteBuffer callWithByteBuffer(final int ival, final short shval);
 
 }

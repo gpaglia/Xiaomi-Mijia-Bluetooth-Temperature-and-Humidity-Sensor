@@ -68,7 +68,9 @@ public class JniExample3 {
     
   }
 
-  private native ByteBuffer startThread(final int count, final int slp, final int val, final MyCallback cb);
+  private native ByteBuffer startThread(
+      final int count, final int slp, final int val, final MyCallback cb
+  );
 
   private native boolean isThreadAlive(final ByteBuffer ctx);
 

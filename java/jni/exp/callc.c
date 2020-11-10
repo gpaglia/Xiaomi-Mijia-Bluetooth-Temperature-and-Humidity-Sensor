@@ -18,6 +18,12 @@
 
 #define handle_error(msg) \
         do { perror(msg); exit(EXIT_FAILURE); } while (0)
+
+
+jint JNI_OnLoad(JavaVM *jvm, void *reserved) {
+  fprintf(stderr, "OnLoad called *****\n");
+  return JNI_VERSION_10;
+}
         
 /*
  * Class:     com_gpaglia_bluetooth_exp_test_JniExample1
