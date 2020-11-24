@@ -24,7 +24,7 @@ public class JniExample2 {
       System.out.printf("%02x ", bb.get(i));
     }
     System.out.print("]\n");
-}
+  }
 
   private native ByteBuffer callWithByteBuffer(final int ival, final short shval);
 

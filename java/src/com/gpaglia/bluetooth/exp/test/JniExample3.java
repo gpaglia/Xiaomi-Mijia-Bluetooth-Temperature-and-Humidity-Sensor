@@ -88,7 +88,7 @@ public class JniExample3 {
   private native void stopThread(final ByteBuffer ctx);
 }
 
-
+@SuppressWarnings("OneTopLevelClass")
 class MyCallback {
   public MyCallback() {}
 
