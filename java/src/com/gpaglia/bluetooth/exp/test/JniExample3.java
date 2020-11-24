@@ -7,6 +7,12 @@ public class JniExample3 {
   private JniExample3() {
   }
 
+  /**
+   * Main method.
+   * 
+   * @param args The args
+   * @throws InterruptedException The exception
+   */
   public static void main(String[] args) throws InterruptedException {
     System.loadLibrary("jniexp");
     final JniExample3 example = new JniExample3();
@@ -24,7 +30,12 @@ public class JniExample3 {
     int sleep = 3;
     final MyCallback cb = new MyCallback();
 
-    System.out.printf("Starting native thread with count=%d, thread sleep=%d and java sleep=%d %n", count, tslp, sleep);
+    System.out.printf(
+        "Starting native thread with count=%d, thread sleep=%d and java sleep=%d %n", 
+        count, 
+        tslp, 
+        sleep
+    );
 
     final ByteBuffer ctx = startThread(count, tslp, 100, cb);
 
